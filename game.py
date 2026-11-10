@@ -1,24 +1,12 @@
-def print_board():
-    for row in board:
+import random
 
-        for c in row:
-            if c == 0:
-                print(".", end=' ')
-            else:
-                print("#", end=' ')
-
-        print("")   
-                
 W = 10
 H = 20
-
-board = []
-
-for _ in range(H):
-    board.append([0] * W)
+HIDDEN = 2
+NUM_COLORS = 5
 
 SHAPES = {
-    "T": [(-1, 0), (0, 0), (1, 0), (0, -1)],
+    "T": [(-1, 0), (0, 0), (1, 0), (0, 1)],
     "I": [(-1, 0), (0, 0), (1, 0), (2, 0)],
     "O": [(0, 0), (1, 0), (0, 1), (1, 1)],
     "S": [(0, 0), (1, 0), (-1, 1), (0, 1)],
@@ -27,7 +15,75 @@ SHAPES = {
     "L": [(1, -1), (-1, 0), (0, 0), (1, 0)],
 }
 
-for i in SHAPES["O"]:
-    board[4 + i[1]][5 + i[0]] = 1
+PIVOT = {"I": 1, "O": 1}
 
-print_board()
+board = []
+for _ in range(H + HIDDEN):
+    board.append([0] * W)
+
+cur_name = None
+cur_color = 0
+cur_cells = []
+cur_x = 0
+cur_y = 0
+
+
+def print_board():
+    piece_cells = []
+    for x, y in cur_cells:
+        piece_cells.append((cur_x + x, cur_y + y))
+
+    for by in range(HIDDEN, H + HIDDEN):
+        for bx in range(W):
+            if (bx, by) in piece_cells:
+                print("■", end=" ")
+            elif board[by][bx] != 0:
+                print("■", end=" ")
+            else:
+                print("□", end=" ")
+        print()
+
+
+def random_piece():
+    name = random.choice(list(SHAPES.keys()))
+    color = random.randint(1, NUM_COLORS)
+    return (name, color)
+
+
+def rotate(cells, k):
+    new_cells = []
+    for x, y in cells:
+        new_cells.append((y, k - x))
+    return new_cells
+
+
+def can_place(cells, px, py):
+    for x, y in cells:
+        bx = px + x
+        by = py + y
+
+        if bx < 0 or bx >= W or by < 0 or by >= H + HIDDEN:
+            return False
+
+        if board[by][bx] != 0:
+            return False
+
+    return True
+
+
+def spawn(piece):
+    global cur_name, cur_color, cur_cells, cur_x, cur_y
+    cur_name, cur_color = piece
+    cur_cells = SHAPES[cur_name]
+    cur_x = 4
+    cur_y = 1
+    return can_place(cur_cells, cur_x, cur_y)
+
+
+def try_move(dx, dy):
+    global cur_x, cur_y
+    if can_place(cur_cells, cur_x + dx, cur_y + dy):
+        cur_x += dx
+        cur_y += dy
+        return True
+    return False
