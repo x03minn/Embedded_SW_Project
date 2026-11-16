@@ -28,6 +28,9 @@ LINE_SCORE = [0, 100, 300, 500, 800]
 NEXT_COUNT = 4
 next_queue = []
 
+# 게임 상태
+game_over = False
+
 # 현재 도형의 상태 정의
 cur_name = None
 cur_color = 0
@@ -175,3 +178,34 @@ def swap_next():
     cur_cells = new_cells
     return True
 
+
+def new_game():
+    global board, score, game_over
+    board = []
+    for _ in range(H + HIDDEN):
+        board.append([0] * W)
+    score = 0
+    game_over = False
+    fill_queue()
+    spawn(next_piece())
+
+
+def settle():
+    global game_over
+    alive = lock()
+    cleared = clear_lines()
+    add_score(cleared)
+
+    if not alive or not spawn(next_piece()):
+        game_over = True
+
+
+def step():
+    if not try_move(0, 1):
+        settle()
+
+
+def hard_drop():
+    while try_move(0, 1):
+        pass
+    settle()
