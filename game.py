@@ -22,7 +22,11 @@ for _ in range(H + HIDDEN):
 
 # 점수
 score = 0
-LINE_SCORE = [0, 100, 300, 500, 700]
+LINE_SCORE = [0, 100, 300, 500, 00]
+
+# 블록 큐
+NEXT_COUNT = 4
+next_queue = []
 
 # 현재 도형의 상태 정의
 cur_name = None
@@ -92,6 +96,7 @@ def try_move(dx, dy):
         return True
     return False
 
+
 def try_rotate():
     global cur_cells, cur_x
     new_cells = rotate(cur_cells)
@@ -105,6 +110,7 @@ def try_rotate():
 
     return False
 
+
 def lock():
     alive = True
 
@@ -117,6 +123,7 @@ def lock():
             alive = False
 
     return alive
+
 
 def clear_lines():
     global board
@@ -135,6 +142,20 @@ def clear_lines():
 
     return cleared
 
+
 def add_score(cleared):
     global score
     score += LINE_SCORE[cleared]
+
+
+def fill_queue():
+    next_queue.clear()
+
+    for _ in range(NEXT_COUNT):
+        next_queue.append(random_piece())
+
+
+def next_piece():
+    piece = next_queue.pop(0)
+    next_queue.append(random_piece())
+    return piece
