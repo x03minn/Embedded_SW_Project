@@ -20,6 +20,10 @@ board = []
 for _ in range(H + HIDDEN):
     board.append([0] * W)
 
+# 점수
+score = 0
+LINE_SCORE = [0, 100, 300, 500, 700]
+
 # 현재 도형의 상태 정의
 cur_name = None
 cur_color = 0
@@ -100,3 +104,37 @@ def try_rotate():
             return True
 
     return False
+
+def lock():
+    alive = True
+
+    for x, y in cur_cells:
+        bx = cur_x + x
+        by = cur_y + y
+        board[by][bx] = cur_color
+
+        if by < HIDDEN:
+            alive = False
+
+    return alive
+
+def clear_lines():
+    global board
+    new_board = []
+
+    for row in board:
+        if 0 in row:
+            new_board.append(row)
+
+    cleared = len(board) - len(new_board)
+
+    for _ in range(cleared):
+        new_board.insert(0, [0] * W)
+
+    board = new_board
+
+    return cleared
+
+def add_score(cleared):
+    global score
+    score += LINE_SCORE[cleared]
