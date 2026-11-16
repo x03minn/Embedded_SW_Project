@@ -22,7 +22,7 @@ for _ in range(H + HIDDEN):
 
 # 점수
 score = 0
-LINE_SCORE = [0, 100, 300, 500, 00]
+LINE_SCORE = [0, 100, 300, 500, 800]
 
 # 블록 큐
 NEXT_COUNT = 4
@@ -159,3 +159,19 @@ def next_piece():
     piece = next_queue.pop(0)
     next_queue.append(random_piece())
     return piece
+
+
+def swap_next():
+    global cur_name, cur_color, cur_cells
+    new_name, new_color = next_queue[0]
+    new_cells = SHAPES[new_name]
+
+    if not can_place(new_cells, cur_x, cur_y):
+        return False
+
+    next_queue[0] = (cur_name, cur_color)
+    cur_name = new_name
+    cur_color = new_color
+    cur_cells = new_cells
+    return True
+
