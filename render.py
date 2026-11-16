@@ -19,7 +19,7 @@ def draw_cell(d, sx, sy, color, size):
     d.rectangle((sx, sy, sx + size - 2, sy + size - 2), fill=color)
 
 
-def draw(js):
+def draw(js, paused=False):
     img = Image.new("RGB", (js.width, js.height), (0, 0, 0))
     d = ImageDraw.Draw(img)
 
@@ -45,6 +45,12 @@ def draw(js):
         oy = 75 + i * 40
         for x, y in game.SHAPES[name]:
             draw_cell(d, ox + x * SMALL, oy + y * SMALL, PALETTE[color], SMALL)
+
+    if game.game_over:
+        d.text((PANEL_X + 5, 200), "GAME OVER", fill=(255, 80, 80))
+        d.text((PANEL_X + 5, 215), "A: RESTART", fill=(255, 255, 255))
+    elif paused:
+        d.text((PANEL_X + 5, 200), "PAUSED", fill=(255, 220, 60))
 
     js.disp.image(img)
 
