@@ -15,12 +15,12 @@ SHAPES = {
     "L": [(1, -1), (-1, 0), (0, 0), (1, 0)],
 }
 
-PIVOT = {"I": 1, "O": 1}
-
+# 보드 생성
 board = []
 for _ in range(H + HIDDEN):
     board.append([0] * W)
 
+# 현재 도형의 상태 정의
 cur_name = None
 cur_color = 0
 cur_cells = []
@@ -50,10 +50,10 @@ def random_piece():
     return (name, color)
 
 
-def rotate(cells, k):
+def rotate(cells):
     new_cells = []
     for x, y in cells:
-        new_cells.append((y, k - x))
+        new_cells.append((y, -x))
     return new_cells
 
 
@@ -86,4 +86,17 @@ def try_move(dx, dy):
         cur_x += dx
         cur_y += dy
         return True
+    return False
+
+def try_rotate():
+    global cur_cells, cur_x
+    new_cells = rotate(cur_cells)
+
+    for shift in [0, 1, -1, 2, -2]:
+        if can_place(new_cells, cur_x + shift, cur_y):
+            cur_cells = new_cells
+            cur_x += shift
+
+            return True
+
     return False
