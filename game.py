@@ -210,36 +210,55 @@ def lock():
 # 채워진 줄 처리 함수
 def clear_lines():
     """
-    현재 보드와 새로운 보드를 가지고, 만약 보드에서 한 칸이라도 0이 있는 행이 있으면 새로운 보드에 그 행을 추가.
-    새로운 보드의 길이와 기존 보드의 길이 차이만큼 새로운 행을 추가 해주고 추가.
-    점수를 위해서 보드 길이의 차이를 반환.
+    꽉 찬 줄과 아이템으로 지울 칸을 to_clear에 모은 뒤 한 번에 지움.
+    꽉 찬 줄이 아닌 칸은 0으로 비우고(공중에 떠도 둠), 꽉 찬 줄은 빼고 위에 빈 줄을 추가.
+    (지운 줄 수, 점수 배율) 반환.
     """
 
     global board
+
+    # 1. 꽉 찬 줄 찾기
+    full_rows = []
+    for y in range(H + HIDDEN):
+        if 0 not in board[y]:
+            full_rows.append(y)
+
+    # 2. 꽉 찬 줄의 칸을 지울 칸에 모으기
+    to_clear = set()
+    for y in full_rows:
+        for x in range(W):
+            to_clear.add((x, y))
+
+    # 3~4. 아이템 처리 (3-3에서 채움)
+    mult = 1
+
+    # 5. 꽉 찬 줄이 아닌 칸은 0으로
+    for x, y in to_clear:
+        if y not in full_rows:
+            board[y][x] = 0
+
+    # 6. 꽉 찬 줄 빼고 위에 빈 줄 추가
     new_board = []
+    for y in range(H + HIDDEN):
+        if y not in full_rows:
+            new_board.append(board[y])
 
-    for row in board:
-        if 0 in row:
-            new_board.append(row)
-
-    cleared = len(board) - len(new_board)
-
+    cleared = len(full_rows)
     for _ in range(cleared):
         new_board.insert(0, [0] * W)
 
     board = new_board
-
-    return cleared
+    return cleared, mult
 
 
 # 점수 더하기 함수
-def add_score(cleared):
+def add_score(cleared, mult = 1):
     """
-    전역 점수에 보드 길이 차이를 인자로 받아서 한번에 많은 행을 지우면 높은 점수를 더함.
+    지운 줄 수와 배율을 받아서 LINE_SCORE에 따라 점수를 더함. 한 번에 많은 행을 지우면 높은 점수.
     """
 
     global score
-    score += LINE_SCORE[cleared]
+    score += LINE_SCORE[cleared] * mult
 
 
 # 블럭 큐 생성 함수
@@ -313,8 +332,8 @@ def settle():
 
     global game_over
     alive = lock()
-    cleared = clear_lines()
-    add_score(cleared)
+    cleared, mult = clear_lines()
+    add_score(cleared, mult)
 
     if not alive or not spawn(next_piece()):
         game_over = True
