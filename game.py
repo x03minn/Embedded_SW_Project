@@ -185,7 +185,6 @@ def lock():
     현재 블럭의 상대좌표와 현재 좌표를 이용하여 현재 블럭의 색상번호로 보드를 변경.
     아이템 칸은 색상번호 + 아이템 * 10 으로 저장.
     만약 블럭의 좌표 중 HIDDEN 보다 낮은 y좌표가 있을 경우 alive를 False로 변경 후 반환.
-    블럭의 좌표 중 HIDDEN 보다 낮은 y좌표가 있을 경우 alive를 False로 변경 후 반환.
     """
 
     alive = True
@@ -205,6 +204,38 @@ def lock():
             alive = False
 
     return alive
+
+
+# 아이템 효과 범위 함수
+def item_cells(item, x, y, color):
+    """
+    (x, y)에 있는 아이템이 터질 때 지울 블럭 좌표 리스트를 반환. 빈칸은 넣지 않음.
+    1 점수 2배: 없음 / 2 세로줄: 그 열 전부 / 3 폭탄: 주변 3x3 / 4 색상 제거: 같은 색 전부
+    """
+
+    cells = []
+
+    if item == 2:
+        for by in range(H + HIDDEN):
+            if board[by][x]:
+                cells.append((x, by))
+
+    elif item == 3:
+        for dy in [-1, 0, 1]:
+            for dx in [-1, 0, 1]:
+                bx = x + dx
+                by = y + dy
+                if 0 <= bx < W and 0 <= by < H + HIDDEN and board[by][bx]:
+                    cells.append((bx, by))
+
+    elif item == 4:
+        for by in range(H + HIDDEN):
+            for bx in range(W):
+                v = board[by][bx]
+                if v and v % 10 == color:
+                    cells.append((bx, by))
+
+    return cells
 
 
 # 채워진 줄 처리 함수
@@ -229,8 +260,27 @@ def clear_lines():
         for x in range(W):
             to_clear.add((x, y))
 
-    # 3~4. 아이템 처리 (3-3에서 채움)
+    # 3. 지울 칸 중 아이템 칸을 큐에 넣기
+    queue = []
+    for x, y in to_clear:
+        if board[y][x] // 10:
+            queue.append((x, y))
+
+    # 4. 큐에서 하나씩 꺼내서 터뜨리기 (연쇄)
     mult = 1
+    while queue:
+        x, y = queue.pop(0)
+        item = board[y][x] // 10
+        color = board[y][x] % 10
+
+        if item == 1:
+            mult *= 2
+
+        for cx, cy in item_cells(item, x, y, color):
+            if (cx, cy) not in to_clear:
+                to_clear.add((cx, cy))
+                if board[cy][cx] // 10:
+                    queue.append((cx, cy))
 
     # 5. 꽉 찬 줄이 아닌 칸은 0으로
     for x, y in to_clear:
